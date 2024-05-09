@@ -5,14 +5,16 @@ namespace App\Filters;
 use Illuminate\Http\Request;
 
 class ApiFilter {
+    // parametros permitidos na filtragem da api
     protected $safeParms = [];
 
+    // mapeando entre os parametros e as colunas no banco
     protected $columnMap = [];
 
-    // mapeia os operadores da API para os operadores do Eloquent 
+    // mapeia os operadores da API para os operadores do eloquent/sql
     protected $operatorMap = [];
 
-    // transforma os parâmetros da requisição em uma consulta Eloquent
+    // transforma os parâmetros da requisição em uma consulta eloquent
     public function transform(Request $request) {
         $eloQuery = []; 
 
@@ -22,20 +24,21 @@ class ApiFilter {
             $query = $request->query($parm);
 
             if(!isset($query)) {
-                continue;
+                continue; //se nao tiver pula pro proximo
             }
-            // Obtém o nome da coluna correspondente ao parâmetro ou usa o próprio parâmetro se não houver mapeamento
+            // Obtem o nome da coluna correspondente ao parametro ou usa o proprio parametro se não tiver mapeamento
             $column = $this->columnMap[$parm] ?? $parm;
 
-            // Itera sobre os operadores permitidos para o parâmetro
+            // Itera sobre os operadores permitidos para verificar se estao presentes na req.
             foreach ($operators as $operator) {
-                // Se o operador estiver definido no parâmetro da requisição, adiciona a condição à consulta Eloquent
+                // Se o operador estiver definido no parametro da req, adiciona a condição a consulta eloquent
                 if (isset($query[$operator])) {
+                     // Adiciona a condição ao array de consulta usando o operador mapeado
                     $eloQuery[] = [$column, $this->operatorMap[$operator], $query[$operator]];
                 }
             }
         }
-        // Retorna a consulta Eloquent construída
+        // retorna o array de condições para consulta eloquent construida
         return $eloQuery;
     }
 } 
